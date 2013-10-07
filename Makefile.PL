@@ -17,6 +17,8 @@ WriteMakefile(
             'File::Spec'  => 0,
             'Test::More'  => 0,
             'Test::Deep'  => 0,
+            'Test::Warn'  => 0,
+            'Test::NoWarnings' => 0,
         },
     LIBS         => [''], # e.g., '-lm'
     DEFINE       => '', # e.g., '-DBYPASS'

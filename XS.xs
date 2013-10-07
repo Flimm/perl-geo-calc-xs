@@ -51,7 +51,7 @@ geocalc_init( GCX *gcx, HV * options )
 
   SV ** sv = hv_fetch(options, "units", 5, 0);
   if( sv == (SV**)NULL ) {
-    gcx->unit_conv = 1;    // Default to KM
+    gcx->unit_conv = 0;    // Default to m
   } else {
     if( strEQ( SvPV_nolen( *sv ), "m" ) ) {
       gcx->unit_conv = 0;
@@ -63,8 +63,11 @@ geocalc_init( GCX *gcx, HV * options )
       gcx->unit_conv = 3;
     } else if( strEQ( SvPV_nolen( *sv ), "mi" ) ) {
       gcx->unit_conv = 4;
+    } else if( strEQ( SvPV_nolen( *sv ), "" ) ) {
+      gcx->unit_conv = 0;
     } else {
-      gcx->unit_conv = 1;
+      warn("Unrecognised unit (defaulting to m)");
+      gcx->unit_conv = 0;
     }
   }
   /*
@@ -258,6 +261,48 @@ void new ( char *klass, ... )
            newRV_noinc( pv ),
            strEQ( klass, "Geo::Calc::XS" ) ? GEOCALC_STASH : gv_stashpv( klass, 1 )
         ) ) );
+    }
+
+void get_lat ( GCX *self, ... )
+    PPCODE:
+    {
+        XPUSHs( sv_2mortal( newSVnv( self->latitude ) ) );
+    }
+
+void get_lon ( GCX *self, ... )
+    PPCODE:
+    {
+        XPUSHs( sv_2mortal( newSVnv( self->longitude ) ) );
+    }
+
+void get_units ( GCX *self, ... )
+    PPCODE:
+    {
+        /* Distance Units */
+        /* 0 -> m, 1 -> km, 2 -> yards, 3 -> feet, 4 -> mile */
+        switch ( self->unit_conv)
+        {
+            case 0:
+                XPUSHs( sv_2mortal( newSVpv( "m", 0 ) ) );
+                break;
+            case 1:
+                XPUSHs( sv_2mortal( newSVpv( "k-m", 0 ) ) );
+                break;
+            case 2:
+                XPUSHs( sv_2mortal( newSVpv( "yd", 0 ) ) );
+                break;
+            case 3:
+                XPUSHs( sv_2mortal( newSVpv( "ft", 0 ) ) );
+                break;
+            default:
+                XPUSHs( sv_2mortal( newSVpv( "mi", 0 ) ) );
+        }
+    }
+
+void get_radius ( GCX *self, ... )
+    PPCODE:
+    {
+        XPUSHs( sv_2mortal( newSVnv( self->radius ) ) );
     }
 
 void distance_to( GCX *self, INGC *to_latlon, ... )
