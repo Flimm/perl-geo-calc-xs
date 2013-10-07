@@ -71,6 +71,9 @@ Returns ref to a Geo::Calc::XS object.
 
 =head2 Parameters
 
+Each of these parameters can be accessed after construction using C<get_lat>,
+C<get_lon>, C<get_radius> or C<get_units>.
+
 =over 4
 
 =item lat
@@ -84,6 +87,10 @@ C<>=> longitude of the point ( required )
 =item radius
 
 C<>=> earth radius in km ( defaults to 6371 )
+
+=item units
+
+C<>=> the distance unit received and output by this object ( default to 'm' )
 
 =back
 
@@ -109,7 +116,7 @@ angular distance in radians, and a is the square of half the chord length betwee
 the points).
 
 Returns with the distance using the precision defined or -6
-( -6 = 6 decimals ( eg 4.000001 ) )
+( -6 = 6 decimals ( eg 4.000001 ) ), in this object's distance unit.
 
 =cut
 
@@ -142,9 +149,9 @@ see http://williams.best.vwh.net/avform.htm#Crs
  my $f_brng = $gc->final_bearing_to( { lat => 40.422371, lon => -3.704298 } );
  my $f_brng = $gc->final_bearing_to( Geo::Calc::XS->new( lat => 40.422371, lon => -3.704298 ) );
 
-Returns final bearing arriving at supplied destination point from this point;
-the final bearing will differ from the initial bearing by varying degrees
-according to distance and latitude
+Returns final bearing (in degrees) arriving at supplied destination point from
+this point; the final bearing will differ from the initial bearing by varying
+degrees according to distance and latitude
 
 =cut
 
@@ -169,6 +176,9 @@ see http://mathforum.org/library/drmath/view/51822.html for derivation
 Returns the destination point and the final bearing using Vincenty inverse
 formula for ellipsoids.
 
+C<$bearing> must be specified in degrees, where 0 is north and 90 is east, and
+C<$distance> must be specified in this object's distance unit.
+
 =cut
 
 =head2 destination_point_hs
@@ -186,12 +196,17 @@ see http://williams.best.vwh.net/avform.htm#LL
 
 =head2 boundry_box
 
- $gc->boundry_box( $width[, $height[, $precision]] ); # in km
- $gc->boundry_box( 3, 4 ); # will generate a 3x4m box around the point
- $gc->boundry_box( 1 ); # will generate a 2x2m box around the point (radius)
+ $gc->boundry_box( $width[, $height[, $precision]] );
+ $gc->boundry_box( 3, 4 ); # will generate a 3x4m box around the point, assuming the object's distance unit is meters
+ $gc->boundry_box( 1 ); # will generate a 2x2m box around the point (radius), assuming the object's distance unit is meters
 
 Returns the boundry box min/max having the initial point defined as the center
-of the boundry box, given the widht and height
+of the boundry box, given the width and height.
+
+If only one dimension has been specified, than that dimension is considered a
+radius.
+
+Dimensions should be specified in the object's distance unit.
 
 =cut
 
@@ -201,8 +216,8 @@ of the boundry box, given the widht and height
  $gc->rhumb_distance_to( { lat => 40.422371, lon => -3.704298 } );
  $gc->rhumb_distance_to( Geo::Calc::XS->new( lat => 40.422371, lon => -3.704298 ) );
 
-Returns the distance from this point to the supplied point, in km, travelling
-along a rhumb line.
+Returns the distance from this point to the supplied point, in the object's
+distance unit, travelling along a rhumb line.
 
 A 'rhumb line' (or loxodrome) is a path of constant bearing, which crosses all
 meridians at the same angle.
@@ -238,8 +253,9 @@ in degrees
  $gc->rhumb_destination_point( $brng, $distance[, $precision] );
  $gc->rhumb_destination_point( 30, 1 );
 
-Returns the destination point from this point having travelled the given distance
-(in km) on the given bearing along a rhumb line.
+Returns the destination point from this point having travelled the given
+distance (in the object's distance unit) on the given bearing along a rhumb
+line.
 
 =cut
 
@@ -258,11 +274,21 @@ see http://williams.best.vwh.net/avform.htm#Intersection
 =head2 distance_at
 
 Returns the distance in meters for 1deg of latitude and longitude at the
-specified latitude
+specified latitude.
 
  my $m_distance = $self->distance_at([$precision]);
  my $m_distance = $self->distance_at();
  # at lat 2 with precision -6 returns { m_lat => 110575.625009, m_lon => 111252.098718 }
+
+Note that this method always returns distances in meters, unlike all the other
+methods which use the object's distance unit. This is kept as it is for backwards
+compatibility.
+
+=head1 COMPATIBILITY
+
+A C<Geo::Calc::XS> object has the same interface as a C<Geo::Calc> object.
+However, the results returned by these objects may differ in the latter decimal
+points, due to the differing implementation.
 
 =cut
 

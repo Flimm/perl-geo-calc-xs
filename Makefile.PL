@@ -18,6 +18,7 @@ WriteMakefile(
             'Test::More'  => 0,
             'Test::Deep'  => 0,
             'Test::Warn'  => 0,
+            'Math::Units' => 0,
             'Test::NoWarnings' => 0,
         },
     LIBS         => [''], # e.g., '-lm'
