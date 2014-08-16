@@ -10,3 +10,8 @@ Revision history for Geo::Calc::XS
 0.25  Tue Mar  6 10:50:21 EST 2012
     - added Test::Deep to dependencies
 
+0.26  Sat Aug 16 00:00:00 EST 2014
+    - change default units to match documentation and Geo::Calc
+    - add getters
+    - improve POD
+

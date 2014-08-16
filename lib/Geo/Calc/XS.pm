@@ -14,7 +14,7 @@ our @ISA = qw( Exporter DynaLoader );
 our %EXPORT_TAGS = ( 'all' => [ 'new', 'distance_to' ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = ();
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 XSLoader::load 'Geo::Calc::XS', $VERSION;
 
@@ -290,7 +290,14 @@ A C<Geo::Calc::XS> object has the same interface as a C<Geo::Calc> object.
 However, the results returned by these objects may differ in the latter decimal
 points, due to the differing implementation.
 
-=cut
+=head1 SEE ALSO
+
+L<Geo::Calc> is the original implementation, which is abandoned at time of
+writing (Aug 2014).
+
+=head1 REPOSITORY
+
+L<https://github.com/Flimm/perl5-geo-calc-xs>
 
 =head1 BUGS
 
@@ -306,6 +313,7 @@ Sorin Alexandru Pop C<< <asp@cpan.org> >>
 =head1 THANKS
 
 Marius Crisan C<< <crisan.marius@gmail.com> >>
+David D Lowe C<< <daviddlowe.flimm@gmail.com> >>
 
 =head1 LICENSE
 

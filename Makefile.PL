@@ -25,4 +25,14 @@ WriteMakefile(
     DEFINE       => '', # e.g., '-DBYPASS'
     INC          => '', # e.g., '-I/usr/include/other'
     SIGN         => 1,
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            repository => {
+                type => 'git',
+                url => 'https://github.com/Flimm/perl5-geo-calc-xs.git',
+                web => 'https://github.com/Flimm/perl5-geo-calc-xs',
+            },
+        },
+    },
 );
