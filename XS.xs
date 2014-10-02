@@ -394,7 +394,7 @@ void intersection( GCX *self, double brng1, INGC *to_latlon, double brng2, ... )
 
         long double dist12 = 2 * asin( sqrt( pow( sin( dlat/2 ), 2 ) + cos( lat1 ) * cos( lat2 ) * pow( sin( dlon/2 ), 2 ) ) );
         if( dist12 == 0 ) {
-            XPUSHs( sv_2mortal( newRV_noinc( (SV*)NULL ) ) );
+            XPUSHs( &PL_sv_undef );
             return;
         }
 
@@ -425,12 +425,12 @@ void intersection( GCX *self, double brng1, INGC *to_latlon, double brng2, ... )
         long double alpha2 = fmod( brng21 - brng23 + ( PI * 3 ), PI * 2 ) - PI;
 
         if( ( sin( alpha1 ) == 0 ) && ( sin( alpha2 ) == 0 ) ) { // infinite intersections
-            XPUSHs( sv_2mortal( newRV_noinc( (SV*)NULL ) ) );
+            XPUSHs( &PL_sv_undef );
             return;
         }
 
         if( sin( alpha1 ) * sin( alpha2 ) < 0 ) { // ambiguous intersection
-            XPUSHs( sv_2mortal( newRV_noinc( (SV*)NULL ) ) );
+            XPUSHs( &PL_sv_undef );
             return;
         }
 
