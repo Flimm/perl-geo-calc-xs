@@ -2,7 +2,7 @@ ChangeLog
 lib/Geo/Calc/XS.pm
 Makefile.PL
 MANIFEST
-MANIFEST.skip
+MANIFEST.SKIP
 README
 t/01_use.t
 t/02_check_module.t
