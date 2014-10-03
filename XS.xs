@@ -41,6 +41,11 @@ typedef struct {
   long double radius;
 } GCX;
 
+typedef struct {
+    long double lat;
+    long double lon;
+    long double final_bearing;
+} DESTINATION;
 
 INLINE void
 geocalc_init( GCX *gcx, HV * options )
@@ -167,8 +172,8 @@ number_of_decimals( SV * sv )
     return precision;
 }
 
-INLINE HV*
-_destination_point( GCX *self, double bearing, double s, int precision )
+INLINE void
+_destination_point( GCX *self, double bearing, double s, int precision, DESTINATION *dest )
 {
     s = convert_to_m( s, self->unit_conv );
 
@@ -219,12 +224,9 @@ _destination_point( GCX *self, double bearing, double s, int precision )
     long double lon2   = fmod( DEG2RAD( self->longitude ) + L + ( PI * 3 ), PI * 2 ) - PI;
     long double revAz  = atan2( sinAlpha, -tmp ); // final bearing, if required
 
-    HV *retval = newHV();
-    hv_store( retval, "lat", 3, newSVnv( _precision_ld( RAD2DEG( lat2 ), precision ) ), 0 );
-    hv_store( retval, "lon", 3, newSVnv( _precision_ld( RAD2DEG( lon2 ), precision ) ), 0 );
-    hv_store( retval, "final_bearing", 13, newSVnv( _precision_ld( RAD2DEG( revAz ), precision ) ), 0 );
-
-    return retval;
+    dest->lat = _precision_ld( RAD2DEG( lat2 ), precision );
+    dest->lon = _precision_ld( RAD2DEG( lon2 ), precision );
+    dest->final_bearing = _precision_ld( RAD2DEG( revAz ), precision );
 }
 
 
@@ -253,9 +255,12 @@ void new ( char *klass, ... )
             croak( "Please check your parameters while initiating the module\n" );
 
         for( i = 0; i < add_count; i = i + 2 ) {
-            hv_store( options, (char *)SvPVX( ST( i + 1 ) ), SvCUR( ST( i + 1 ) ), ST( i + 2 ), 0 );
+            hv_store_ent( options, ST( i + 1 ), newSVsv(ST( i + 2)), 0);
         }
+
         geocalc_init( (GCX *)SvPVX( pv ), options );
+
+        SvREFCNT_dec((SV *) options);
 
         XPUSHs( sv_2mortal( sv_bless(
            newRV_noinc( pv ),
@@ -325,7 +330,14 @@ void destination_point( GCX *self, double bearing, double s, ... )
     PPCODE:
     {
         int precision = number_of_decimals( ST( 3 ) );
-        XPUSHs( sv_2mortal( newRV_noinc( (SV*)_destination_point( self, bearing, s, precision ) ) ) );
+        DESTINATION dest;
+        _destination_point( self, bearing, s, precision, &dest );
+
+        HV *retval = newHV();
+        hv_store( retval, "lat", 3, newSVnv( dest.lat ), 0 );
+        hv_store( retval, "lon", 3, newSVnv( dest.lon ), 0 );
+        hv_store( retval, "final_bearing", 13, newSVnv( dest.final_bearing ), 0 );
+        XPUSHs( sv_2mortal( newRV_noinc( (SV*)retval ) ) );
     }
 
 void boundry_box( GCX *self, double width, ... )
@@ -333,6 +345,7 @@ void boundry_box( GCX *self, double width, ... )
     {
         int precision = -6;
         double height = 0;
+        DESTINATION dest;
 
         if( SvOK( ST( 2 ) ) ) {
             height = SvNV( ST( 2 ) );
@@ -345,10 +358,18 @@ void boundry_box( GCX *self, double width, ... )
             precision = number_of_decimals( ST( 3 ) );
 
         HV *retval = newHV();
-        hv_store( retval, "lat_min", 7, *hv_fetch( _destination_point( self, 180, height / 2, precision ), "lat", 3, 0 ), 0 );
-        hv_store( retval, "lon_min", 7, *hv_fetch( _destination_point( self, 270, width  / 2, precision ), "lon", 3, 0 ), 0 );
-        hv_store( retval, "lat_max", 7, *hv_fetch( _destination_point( self,   0, height / 2, precision ), "lat", 3, 0 ), 0 );
-        hv_store( retval, "lon_max", 7, *hv_fetch( _destination_point( self,  90, width  / 2, precision ), "lon", 3, 0 ), 0 );
+
+        _destination_point( self, 180, height / 2, precision, &dest );
+        hv_store( retval, "lat_min", 7, newSVnv( dest.lat ), 0 );
+
+        _destination_point( self, 270, width  / 2, precision, &dest );
+        hv_store( retval, "lon_min", 7, newSVnv( dest.lon ), 0 );
+
+        _destination_point( self,   0, height / 2, precision, &dest );
+        hv_store( retval, "lat_max", 7, newSVnv( dest.lat ), 0 );
+
+        _destination_point( self,  90, width  / 2, precision, &dest );
+        hv_store( retval, "lon_max", 7, newSVnv( dest.lon ), 0 );
 
         XPUSHs( sv_2mortal( newRV_noinc( (SV*)retval ) ) );
     }
