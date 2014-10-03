@@ -1,0 +1,4 @@
+^[.]gitignore$
+^XS[.][oc]$
+^.*\.un~$
+^Geo-Calc-XS.*\.tar\.gz$
