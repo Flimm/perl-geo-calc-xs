@@ -14,7 +14,7 @@ our @ISA = qw( Exporter DynaLoader );
 our %EXPORT_TAGS = ( 'all' => [ 'new', 'distance_to' ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = ();
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 XSLoader::load 'Geo::Calc::XS', $VERSION;
 
@@ -314,6 +314,7 @@ Sorin Alexandru Pop C<< <asp@cpan.org> >>
 
 Marius Crisan C<< <crisan.marius@gmail.com> >>
 David D Lowe C<< <daviddlowe.flimm@gmail.com> >>
+Chris Hughes C<< <chris@lokku.com> >>
 
 =head1 LICENSE
 
