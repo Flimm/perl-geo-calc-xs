@@ -24,8 +24,6 @@
 #define DEG2RAD(DEG) ((DEG)*((PI)/(180.0)))
 #define RAD2DEG(DEG) ((DEG)*(180.0/PI))
 
-#define INGC HV
-
 static HV *geocalc_stash;
 
 enum DISTANCE_UNIT_ENUM {
@@ -54,12 +52,25 @@ typedef struct {
     long double final_bearing;
 } DESTINATION;
 
+typedef struct {
+    long double lat;
+    long double lon;
+} POINT;
+
 INLINE void
 geocalc_init( GCX *gcx, HV * options )
 {
   Zero( gcx, 1, GCX );
-  gcx->latitude  = (long double) SvNV( *hv_fetch(options, "lat", 3, 0) );
-  gcx->longitude = (long double) SvNV( *hv_fetch(options, "lon", 3, 0) );
+  SV** sv_lat = hv_fetch(options, "lat", strlen("lat"), 0);
+  if (! sv_lat) {
+    croak("lat must be specified");
+  }
+  SV** sv_lon = hv_fetch(options, "lon", strlen("lon"), 0);
+  if (! sv_lon) {
+    croak("lon must be specified");
+  }
+  gcx->latitude  = (long double) SvNV( *sv_lat );
+  gcx->longitude = (long double) SvNV( *sv_lon );
 
   SV ** sv = hv_fetch(options, "units", 5, 0);
   if( sv == (SV**)NULL ) {
@@ -159,10 +170,13 @@ INLINE int
 number_of_decimals( SV * sv )
 {
     int precision = -6;
-    if( SvOK( sv ) )
+    if ( SvOK( sv ) && ! SvROK( sv ) ) {
         precision = SvIV( sv );
-    else
+    } else if ( SvOK( sv ) ) {
+        croak("Expected number, not RV");
+    } else {
         precision = -6;
+    }
 
     return precision;
 }
@@ -308,15 +322,15 @@ get_radius ( GCX *self, ... )
         RETVAL
 
 long double
-distance_to( GCX *self, INGC *to_latlon, ... )
+distance_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
 
         long double lat1 = DEG2RAD( self->latitude );
         long double lon1 = DEG2RAD( self->longitude );
-        long double lat2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double lon2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) );
+        long double lat2 = DEG2RAD( to_latlon->lat );
+        long double lon2 = DEG2RAD( to_latlon->lon );
 
         long double t = pow( sin( ( lat2 - lat1 ) / 2 ), 2 ) + ( pow( cos( lat1 ), 2 ) * pow( sin( ( lon2 - lon1 )/2 ), 2 ) );
         long double d = convert_km( self->radius * ( 2 * atan2( sqrt(t), sqrt(1-t) ) ), self->unit_conv );
@@ -383,7 +397,7 @@ boundry_box( GCX *self, double width, ... )
         RETVAL
 
 HV *
-midpoint_to( GCX *self, INGC *to_latlon, ... )
+midpoint_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
@@ -391,8 +405,8 @@ midpoint_to( GCX *self, INGC *to_latlon, ... )
         long double lat1 = DEG2RAD( self->latitude );
         long double lon1 = DEG2RAD( self->longitude );
 
-        long double lat2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double dlon = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) - self->longitude );
+        long double lat2 = DEG2RAD( to_latlon->lat );
+        long double dlon = DEG2RAD( to_latlon->lon - self->longitude );
 
         long double bx = cos( lat2 ) * cos( dlon );
         long double by = cos( lat2 ) * sin( dlon );
@@ -411,15 +425,15 @@ midpoint_to( GCX *self, INGC *to_latlon, ... )
         RETVAL
 
 HV *
-intersection( GCX *self, double brng1, INGC *to_latlon, double brng2, ... )
+intersection( GCX *self, double brng1, POINT *to_latlon, double brng2, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 4 ) );
 
         long double lat1   = DEG2RAD( self->latitude );
         long double lon1   = DEG2RAD( self->longitude );
-        long double lat2   = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double lon2   = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) );
+        long double lat2   = DEG2RAD( to_latlon->lat );
+        long double lon2   = DEG2RAD( to_latlon->lon );
         long double brng13 = DEG2RAD( brng1 );
         long double brng23 = DEG2RAD( brng2 );
 
@@ -509,14 +523,14 @@ distance_at( GCX *self, ... )
         RETVAL
 
 long double
-bearing_to( GCX *self, INGC *to_latlon, ... )
+bearing_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
 
         long double lat1 = DEG2RAD( self->latitude );
-        long double lat2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double dlon = DEG2RAD( self->longitude - (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) );
+        long double lat2 = DEG2RAD( to_latlon->lat );
+        long double dlon = DEG2RAD( self->longitude - to_latlon->lon );
 
         long double brng = atan2( sin( dlon ) * cos( lat2 ), ( cos( lat1 ) * sin( lat2 ) ) - ( sin( lat1 ) * cos( lat2 ) * cos( dlon ) ) );
 
@@ -526,14 +540,14 @@ bearing_to( GCX *self, INGC *to_latlon, ... )
         RETVAL
 
 long double
-final_bearing_to( GCX *self, INGC *to_latlon, ... )
+final_bearing_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
 
-        long double lat1 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
+        long double lat1 = DEG2RAD( to_latlon->lat );
         long double lat2 = DEG2RAD( self->latitude );
-        long double dlon = -DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) - self->longitude );
+        long double dlon = -DEG2RAD( to_latlon->lon - self->longitude );
 
         long double brng = atan2( sin( dlon ) * cos( lat2 ), ( cos( lat1 ) * sin( lat2 ) ) - ( sin( lat1 ) * cos( lat2 ) * cos( dlon ) ) );
 
@@ -543,15 +557,15 @@ final_bearing_to( GCX *self, INGC *to_latlon, ... )
         RETVAL
 
 long double
-rhumb_distance_to( GCX *self, INGC *to_latlon, ... )
+rhumb_distance_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
 
         long double lat1 = DEG2RAD( self->latitude );
-        long double lat2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double dlat = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) - self->latitude );
-        long double dlon = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) - self->longitude );
+        long double lat2 = DEG2RAD( to_latlon->lat );
+        long double dlat = DEG2RAD( to_latlon->lat - self->latitude );
+        long double dlon = DEG2RAD( to_latlon->lon - self->longitude );
         if( dlon < 0 )
             dlon = -dlon;
 
@@ -576,14 +590,14 @@ rhumb_distance_to( GCX *self, INGC *to_latlon, ... )
         RETVAL
 
 long double
-rhumb_bearing_to( GCX *self, INGC *to_latlon, ... )
+rhumb_bearing_to( GCX *self, POINT *to_latlon, ... )
     CODE:
     {
         int precision = number_of_decimals( ST( 2 ) );
 
         long double lat1 = DEG2RAD( self->latitude );
-        long double lat2 = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lat", 3, 0) ) );
-        long double dlon = DEG2RAD( (long double) SvNV( *hv_fetch(to_latlon, "lon", 3, 0) ) - self->longitude );
+        long double lat2 = DEG2RAD( to_latlon->lat );
+        long double dlon = DEG2RAD( to_latlon->lon - self->longitude );
 
         long double dphi = log( tan( lat2/2 + PI/4 ) / tan( lat1/2 + PI/4 ) );
         long double abs_dphi = dphi;
