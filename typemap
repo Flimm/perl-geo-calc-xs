@@ -4,6 +4,7 @@ GCX *		T_GCX
 INGC *		T_INGC
 long double     T_LONG_DOUBLE
 POINT *         T_POINT
+INT_NOT_R       T_INT_NOT_R
 
 INPUT
 
@@ -37,6 +38,12 @@ T_POINT
         } else {
             croak(\"${Package}::$func_name() -- expected a Geo::Calc::XS or HV reference\");
         }
+
+T_INT_NOT_R
+        if (SvOK($arg) && SvROK($arg)) {
+            croak(\"${Package}::$func_name() -- expected integer not reference\");
+        }
+        $var = ($type) SvIV($arg);
 
 OUTPUT
 
