@@ -48,18 +48,31 @@ Geo::Calc::XS - simple geo calculator for points and distances
 
 =head1 DESCRIPTION
 
-C<Geo::Calc::XS> implements a variety of calculations for latitude/longitude points
+B<Geo::Calc::XS> implements a variety of calculations for latitude/longitude points
 
 All these formulas are for calculations on the basis of a spherical earth
-(ignoring ellipsoidal effects), which is accurate enough* for most purposes.
+(ignoring ellipsoidal effects), which is accurate enough for most purposes.
 
 [ In fact, the earth is very slightly ellipsoidal; using a spherical model
 gives errors typically up to 0.3% ].
 
-Benchmarking this module and Geo::Calc I found out that this module is sometimes
+Benchmarking this module and L<Geo::Calc> I found out that this module is sometimes
 more than 8000 times faster.
 
+=head1 CAVEATS
+
+=over 4
+
+=item
+
 This module is not thread-safe.
+
+=item
+
+This is not a drop-in replacement for L<Geo::Calc>, see the COMPATIBILITY
+section further down.
+
+=back
 
 =head1 Geo::Calc::XS->new()
 
@@ -68,10 +81,12 @@ This module is not thread-safe.
 
 Creates a new Geo::Calc::XS object from a latitude and longitude. The default
 decimal precision is -6 for all functions => meaning by default it always
-returns the results with 6 deciamls.
+returns the results with 6 decimals.
 
-The default unit distance is 'm' (meter), but you cand define another unit using 'units'.
+The default unit distance is 'm' (meter), but you cand define another unit using C<units>.
 Accepted values are: 'm' (meters), 'k-m' (kilometers), 'yd' (yards), 'ft' (feet) and 'mi' (miles)
+
+If a C<radius> parameter is passed, it is ignored.
 
 Returns a reference to a C<Geo::Calc::XS> object.
 
@@ -187,19 +202,6 @@ C<$distance> must be specified in this object's distance unit.
 
 =cut
 
-=head2 destination_point_hs
-
- $gc->destination_point_hs( $bearing, $distance[, $precision] );
- $gc->destination_point_hs( 90, 1 );
-
-Returns the destination point from this point having travelled the given
-distance on the given initial bearing (bearing may vary before destination is
-reached)
-
-See L<http://williams.best.vwh.net/avform.htm#LL>
-
-=cut
-
 =head2 boundry_box
 
  $gc->boundry_box( $width[, $height[, $precision]] );
@@ -292,9 +294,31 @@ compatibility.
 
 =head1 COMPATIBILITY
 
-A C<Geo::Calc::XS> object has the same interface as a C<Geo::Calc> object.
-However, the results returned by these objects may differ in the latter decimal
-points, due to the differing implementation.
+A B<Geo::Calc::XS> object does not have the same interface as a L<Geo::Calc>
+object, despite the similarities.
+
+Here are the currently known differences:
+
+=over 4
+
+=item
+
+C<destination_point_hs> is provided by L<Geo::Calc> but not by this module.
+
+=item
+
+The constructor for L<Geo::Calc> accepts a C<radius> parameter, but this module ignores it.
+
+=item
+
+Methods with identicial names perform similar functions but may return
+different results after a few decimal places.
+
+=item
+
+L<Geo::Calc> may be thread-safe, whereas this module definitely is not.
+
+=back
 
 =head1 SEE ALSO
 
@@ -310,7 +334,7 @@ L<https://github.com/Flimm/perl5-geo-calc-xs>
 All complex software has bugs lurking in it, and this module is no
 exception.
 
-Please report any bugs through the web interface at L<http://rt.cpan.org>.
+Please report any bugs through the web interface at L<https://rt.cpan.org/Public/Dist/Display.html?Name=Geo-Calc-XS>.
 
 =head1 AUTHOR
 
@@ -320,7 +344,7 @@ Sorin Alexandru Pop C<< <asp@cpan.org> >>
 
 Marius Crisan C<< <crisan.marius@gmail.com> >>
 
-David D Lowe C<< <daviddlowe.flimm@gmail.com> >>
+David D Lowe C<< <flimm@cpan.org> >>
 
 Chris Hughes C<< <chris@lokku.com> >>
 
