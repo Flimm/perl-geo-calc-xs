@@ -18,7 +18,7 @@ our $VERSION = '0.27';
 
 XSLoader::load 'Geo::Calc::XS', $VERSION;
 
-# Copyrights 2011-2012 by Sorin Alexandru Pop.
+# Copyright 2011-2012 by Sorin Alexandru Pop.
 # For other contributors see ChangeLog.
 # See the manual pages for details on the licensing terms.
 
@@ -31,6 +31,10 @@ Geo::Calc::XS - simple geo calculator for points and distances
  use Geo::Calc::XS;
 
  my $gc            = Geo::Calc::XS->new( lat => 40.417875, lon => -3.710205 );
+ my $lan           = $gc->get_lan();
+ my $lon           = $gc->get_lon();
+ my $radius        = $gc->get_radius();
+ my $units         = $gc->get_units();
  my $distance      = $gc->distance_to( { lat => 40.422371, lon => -3.704298 }, -6 );
  my $brng          = $gc->bearing_to( { lat => 40.422371, lon => -3.704298 }, -6 );
  my $f_brng        = $gc->final_bearing_to( { lat => 40.422371, lon => -3.704298 }, -6 );
@@ -46,14 +50,16 @@ Geo::Calc::XS - simple geo calculator for points and distances
 
 C<Geo::Calc::XS> implements a variety of calculations for latitude/longitude points
 
-All these formulare are for calculations on the basis of a spherical earth
-(ignoring ellipsoidal effects) which is accurate enough* for most purposes.
+All these formulas are for calculations on the basis of a spherical earth
+(ignoring ellipsoidal effects), which is accurate enough* for most purposes.
 
 [ In fact, the earth is very slightly ellipsoidal; using a spherical model
 gives errors typically up to 0.3% ].
 
-Benchmarnking this module and Geo::Calc I found out that this module is sometime
+Benchmarking this module and Geo::Calc I found out that this module is sometimes
 more than 8000 times faster.
+
+This module is not thread-safe.
 
 =head1 Geo::Calc::XS->new()
 
@@ -61,13 +67,13 @@ more than 8000 times faster.
  $gc = Geo::Calc::XS->new( lat => 51.503269, lon => 0, units => 'k-m' ); # The O2 Arena in London
 
 Creates a new Geo::Calc::XS object from a latitude and longitude. The default
-deciaml precision is -6 for all functions => meaning by default it always
+decimal precision is -6 for all functions => meaning by default it always
 returns the results with 6 deciamls.
 
 The default unit distance is 'm' (meter), but you cand define another unit using 'units'.
 Accepted values are: 'm' (meters), 'k-m' (kilometers), 'yd' (yards), 'ft' (feet) and 'mi' (miles)
 
-Returns ref to a Geo::Calc::XS object.
+Returns a reference to a C<Geo::Calc::XS> object.
 
 =head2 Parameters
 
@@ -78,19 +84,19 @@ C<get_lon>, C<get_radius> or C<get_units>.
 
 =item lat
 
-C<>=> latitude of the point ( required )
+=> latitude of the point ( required )
 
 =item lon
 
-C<>=> longitude of the point ( required )
+=> longitude of the point ( required )
 
 =item radius
 
-C<>=> earth radius in km ( defaults to 6371 )
+=> earth radius in km ( defaults to 6371 )
 
 =item units
 
-C<>=> the distance unit received and output by this object ( default to 'm' )
+=> the distance unit received and output by this object ( defaults to 'm' )
 
 =back
 
@@ -139,7 +145,7 @@ you from the start point to the end point
 Returns the (initial) bearing from this point to the supplied point, in degrees
 with the specified pricision
 
-see http://williams.best.vwh.net/avform.htm#Crs
+See L<http://williams.best.vwh.net/avform.htm#Crs>
 
 =cut
 
@@ -164,7 +170,7 @@ degrees according to distance and latitude
 Returns the midpoint along a great circle path between the initial point and
 the supplied point.
 
-see http://mathforum.org/library/drmath/view/51822.html for derivation
+See L<http://mathforum.org/library/drmath/view/51822.html> for derivation
 
 =cut
 
@@ -190,7 +196,7 @@ Returns the destination point from this point having travelled the given
 distance on the given initial bearing (bearing may vary before destination is
 reached)
 
-see http://williams.best.vwh.net/avform.htm#LL
+See L<http://williams.best.vwh.net/avform.htm#LL>
 
 =cut
 
@@ -233,7 +239,7 @@ great circle . important for aviation fuel, but not particularly to sailing
 vessels. New York to Beijing . close to the most extreme example possible
 (though not sailable!) . is 30% longer along a rhumb line.
 
-see http://williams.best.vwh.net/avform.htm#Rhumb
+See L<http://williams.best.vwh.net/avform.htm#Rhumb>
 
 =cut
 
@@ -267,7 +273,7 @@ line.
 
 Returns the point of intersection of two paths defined by point and bearing
 
-see http://williams.best.vwh.net/avform.htm#Intersection
+See L<http://williams.best.vwh.net/avform.htm#Intersection>
 
 =cut
 
@@ -313,7 +319,9 @@ Sorin Alexandru Pop C<< <asp@cpan.org> >>
 =head1 THANKS
 
 Marius Crisan C<< <crisan.marius@gmail.com> >>
+
 David D Lowe C<< <daviddlowe.flimm@gmail.com> >>
+
 Chris Hughes C<< <chris@lokku.com> >>
 
 =head1 LICENSE
