@@ -251,6 +251,11 @@ void new ( char *klass, ... )
             croak( "Please check your parameters while initiating the module\n" );
 
         for( i = 0; i < add_count; i = i + 2 ) {
+            char *key = SvPV_nolen(ST(i + 1));
+            if (! (0 == strcmp(key, "lat") || 0 == strcmp(key, "lon") || 0 == strcmp(key, "units")
+                || 0 == strcmp(key, "radius"))) {
+                croak("Unexpected key '%s'", key);
+            }
             hv_store_ent( options, ST( i + 1 ), newSVsv(ST( i + 2)), 0);
         }
 
@@ -265,21 +270,21 @@ void new ( char *klass, ... )
     }
 
 long double
-get_lat ( GCX *self, ... )
+get_lat ( GCX *self )
     CODE:
         RETVAL = self->latitude;
     OUTPUT:
         RETVAL
 
 long double
-get_lon ( GCX *self, ... )
+get_lon ( GCX *self )
     CODE:
         RETVAL = self->longitude;
     OUTPUT:
         RETVAL
 
 char *
-get_units ( GCX *self, ... )
+get_units ( GCX *self )
     CODE:
         switch ( self->unit_conv)
         {
@@ -302,14 +307,14 @@ get_units ( GCX *self, ... )
         RETVAL
 
 long double
-get_radius ( GCX *self, ... )
+get_radius ( GCX *self )
     CODE:
         RETVAL = self->radius;
     OUTPUT:
         RETVAL
 
 long double
-distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( self->latitude );
@@ -326,7 +331,7 @@ distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 HV *
-destination_point( GCX *self, double bearing, double s, INT_NOT_R precision = -6, ... )
+destination_point( GCX *self, double bearing, double s, INT_NOT_R precision = -6 )
     CODE:
     {
         DESTINATION dest;
@@ -399,7 +404,7 @@ boundry_box( GCX *self, ... )
         RETVAL
 
 HV *
-midpoint_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+midpoint_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( self->latitude );
@@ -425,7 +430,7 @@ midpoint_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 HV *
-intersection( GCX *self, double brng1, POINT *to_latlon, double brng2, INT_NOT_R precision = -6, ... )
+intersection( GCX *self, double brng1, POINT *to_latlon, double brng2, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1   = DEG2RAD( self->latitude );
@@ -494,7 +499,7 @@ intersection( GCX *self, double brng1, POINT *to_latlon, double brng2, INT_NOT_R
         RETVAL
 
 HV *
-distance_at( GCX *self, INT_NOT_R precision = -6, ... )
+distance_at( GCX *self, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat = DEG2RAD( self->latitude );
@@ -519,7 +524,7 @@ distance_at( GCX *self, INT_NOT_R precision = -6, ... )
         RETVAL
 
 long double
-bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( self->latitude );
@@ -534,7 +539,7 @@ bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 long double
-final_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+final_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( to_latlon->lat );
@@ -549,7 +554,7 @@ final_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 long double
-rhumb_distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+rhumb_distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( self->latitude );
@@ -580,7 +585,7 @@ rhumb_distance_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 long double
-rhumb_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
+rhumb_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6 )
     CODE:
     {
         long double lat1 = DEG2RAD( self->latitude );
@@ -603,7 +608,7 @@ rhumb_bearing_to( GCX *self, POINT *to_latlon, INT_NOT_R precision = -6, ... )
         RETVAL
 
 HV *
-rhumb_destination_point( GCX *self, double brng, double s, INT_NOT_R precision = -6, ... )
+rhumb_destination_point( GCX *self, double brng, double s, INT_NOT_R precision = -6 )
     CODE:
     {
         long double d    = ( convert_to_m( s, self->unit_conv ) / 1000 ) / self->radius;
