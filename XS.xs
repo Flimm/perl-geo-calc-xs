@@ -28,14 +28,21 @@
 
 static HV *geocalc_stash;
 
+enum DISTANCE_UNIT_ENUM {
+    UNIT_METERS,
+    UNIT_KM,
+    UNIT_YARDS,
+    UNIT_FEET,
+    UNIT_MILES
+};
+
 typedef struct {
   /* Coords */
   long double latitude;
   long double longitude;
 
   /* Distance Units */
-  /* 0 -> m, 1 -> km, 2 -> yards, 3 -> feet, 4 -> mile */
-  int unit_conv;
+  enum DISTANCE_UNIT_ENUM unit_conv;
 
   /* Earth Radius */
   long double radius;
@@ -56,23 +63,23 @@ geocalc_init( GCX *gcx, HV * options )
 
   SV ** sv = hv_fetch(options, "units", 5, 0);
   if( sv == (SV**)NULL ) {
-    gcx->unit_conv = 0;    // Default to m
+    gcx->unit_conv = UNIT_METERS;    // Default to m
   } else {
     if( strEQ( SvPV_nolen( *sv ), "m" ) ) {
-      gcx->unit_conv = 0;
+      gcx->unit_conv = UNIT_METERS;
     } else if( strEQ( SvPV_nolen( *sv ), "k-m" ) ) {
-      gcx->unit_conv = 1;
+      gcx->unit_conv = UNIT_KM;
     } else if( strEQ( SvPV_nolen( *sv ), "yd" ) ) {
-      gcx->unit_conv = 2;
+      gcx->unit_conv = UNIT_YARDS;
     } else if( strEQ( SvPV_nolen( *sv ), "ft" ) ) {
-      gcx->unit_conv = 3;
+      gcx->unit_conv = UNIT_FEET;
     } else if( strEQ( SvPV_nolen( *sv ), "mi" ) ) {
-      gcx->unit_conv = 4;
+      gcx->unit_conv = UNIT_MILES;
     } else if( strEQ( SvPV_nolen( *sv ), "" ) ) {
-      gcx->unit_conv = 0;
+      gcx->unit_conv = UNIT_METERS;
     } else {
       warn("Unrecognised unit (defaulting to m)");
-      gcx->unit_conv = 0;
+      gcx->unit_conv = UNIT_METERS;
     }
   }
   /*
@@ -87,48 +94,36 @@ geocalc_init( GCX *gcx, HV * options )
 }
 
 INLINE long double
-convert_km( long double input, int to_unit )
+convert_km( long double input, enum DISTANCE_UNIT_ENUM to_unit )
 {
   double output = 0;
 
   switch( to_unit )
   {
-    case 0  : output = input * 1000;
-              break;
-    case 1  : output = input;               // kilometer
-              break;
-    case 2  : output = input * 1093.6133;   // yard
-              break;
-    case 3  : output = input * 3280.8399;   // feet
-              break;
-    case 4  : output = input * 0.621371192; // mile
-              break;
-    default : output = input;               // kilometer
-              break;
+    case UNIT_METERS : output = input * 1000;        break;
+    case UNIT_KM     : output = input;               break;
+    case UNIT_YARDS  : output = input * 1093.6133;   break;
+    case UNIT_FEET   : output = input * 3280.8399;   break;
+    case UNIT_MILES  : output = input * 0.621371192; break;
+    default          : output = input;               break; // kilometers
   }
 
   return output;
 }
 
 INLINE long double
-convert_to_m( long double input, int from_unit )
+convert_to_m( long double input, enum DISTANCE_UNIT_ENUM from_unit )
 {
   double output = 0;
 
   switch( from_unit )
   {
-    case 0  : output = input;            // m
-              break;
-    case 1  : output = input * 1000;     // km
-              break;
-    case 2  : output = input * 0.9144;   // yard
-              break;
-    case 3  : output = input * 0.3048;   // yard
-              break;
-    case 4  : output = input * 1609.344; // mile
-              break;
-    default : output = input * 1000;     // kilometer
-              break;
+    case UNIT_METERS : output = input;            break;
+    case UNIT_KM     : output = input * 1000;     break;
+    case UNIT_YARDS  : output = input * 0.9144;   break;
+    case UNIT_FEET   : output = input * 0.3048;   break;
+    case UNIT_MILES  : output = input * 1609.344; break;
+    default          : output = input * 1000;     break; // killometers
   }
 
   return output;
@@ -283,20 +278,18 @@ void get_lon ( GCX *self, ... )
 void get_units ( GCX *self, ... )
     PPCODE:
     {
-        /* Distance Units */
-        /* 0 -> m, 1 -> km, 2 -> yards, 3 -> feet, 4 -> mile */
         switch ( self->unit_conv)
         {
-            case 0:
+            case UNIT_METERS:
                 XPUSHs( sv_2mortal( newSVpv( "m", 0 ) ) );
                 break;
-            case 1:
+            case UNIT_KM:
                 XPUSHs( sv_2mortal( newSVpv( "k-m", 0 ) ) );
                 break;
-            case 2:
+            case UNIT_YARDS:
                 XPUSHs( sv_2mortal( newSVpv( "yd", 0 ) ) );
                 break;
-            case 3:
+            case UNIT_FEET:
                 XPUSHs( sv_2mortal( newSVpv( "ft", 0 ) ) );
                 break;
             default:
