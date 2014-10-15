@@ -2,6 +2,7 @@ TYPEMAP
 
 GCX *		T_GCX
 INGC *		T_INGC
+long double     T_LONG_DOUBLE
 
 INPUT
 
@@ -21,3 +22,11 @@ T_INGC
             warn( \"${Package}::$func_name() -- $var is not an Geo::Calc::XS or HV reference\" );
             XSRETURN_UNDEF;
         }
+
+T_LONG_DOUBLE
+        $var = (long double) SvNV($arg)
+
+OUTPUT
+
+T_LONG_DOUBLE
+        sv_setnv($arg, (long double)$var);
