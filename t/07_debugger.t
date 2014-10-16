@@ -22,6 +22,7 @@ ok(-d $blib_arch_dir, "$blib_arch_dir is a directory");
 
 {
     local $ENV{PERLDB_OPTS} = "NonStop";
+    local $ENV{SKIP_THREAD_TESTS} = "1";
     my @cmd = ("perl", "-d", "-I$blib_lib_dir", "-I$blib_arch_dir", "--", $check_module_fn);
     my $err = 1;
     my $pid = open3(my $in, my $out, $err, @cmd);
