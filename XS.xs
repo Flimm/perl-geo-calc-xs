@@ -366,18 +366,18 @@ boundry_box( GCX *self, ... )
         }
         width = SvNV(ST(1));
 
-        if (ST(2) && SvOK(ST(2)) && SvROK(ST(2))) {
+        if (items >= 3 && ST(2) && SvOK(ST(2)) && SvROK(ST(2))) {
             croak("height is not expected to be a reference");
-        } else if (ST(2) && SvOK(ST(2))) {
+        } else if (items >= 3 && ST(2) && SvOK(ST(2))) {
             height = SvNV(ST(2));
         } else {
             width = width * 2;
             height = width;
         }
 
-        if (ST(3) && SvOK(ST(3)) && SvROK(ST(3))) {
+        if (items >= 4 && ST(3) && SvOK(ST(3)) && SvROK(ST(3))) {
             croak("precision is not expected to be a reference");
-        } else if (ST(3) && SvOK(ST(3))) {
+        } else if (items >= 4 && ST(3) && SvOK(ST(3))) {
             precision = SvNV(ST(3));
         } else {
             precision = -6;
