@@ -15,3 +15,6 @@ t/90_benchmark.t
 t/99_pod.t
 typemap
 XS.xs
+META.yml                                 Module YAML meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)
+SIGNATURE                                Public-key signature (added by MakeMaker)
